@@ -29,19 +29,15 @@ export default class Parser<T extends Record<string, unknown>> {
 		const result: unknown[] = [];
 		for (let i = 0; i < headers.length; i++) {
 			const values = await this.executeTransforms(i, rowsIndexedByHeader, defaultValue);
-			if (values.length === 0) continue;
 			for (let j = 0; j < values.length; j++) {
-				if (typeof values[j] === 'object' || Array.isArray(values[j])) {
-					result[headers.length * j + i] = JSON.stringify(values[j]);
-					continue;
-				}
-				result[headers.length * j + i] = values[j];
+				result[headers.length * j + i] =
+					typeof values[j] === 'object' || Array.isArray(values[j]) ? JSON.stringify(values[j]) : values[j];
 			}
 		}
 		return this.buildCsv(result, eol, delimiter);
 	}
 
-	private indexRowsByHeader<T extends Record<string, unknown>>(rows: T[]): Map<string, unknown[]> {
+	private indexRowsByHeader(rows: T[]): Map<string, unknown[]> {
 		return rows
 			.map(Object.entries)
 			.flat()

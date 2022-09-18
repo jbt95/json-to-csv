@@ -5,7 +5,7 @@ include:
 exclude:
   - 'src/**/test.ts'
 statements: 100
-branches: 66
+branches: 88
 functions: 100
 lines: 100
 watermarks:
