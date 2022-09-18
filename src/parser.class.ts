@@ -21,11 +21,15 @@ export default class Parser<T extends Record<string, unknown>> {
 		return parser.parse();
 	}
 
-	private constructor(private data: T | T[], private options: Options<T>) {}
+	private _data: T | T[];
+
+	private constructor(data: T | T[], private options: Options<T>) {
+		this.data = data;
+	}
 
 	public async parse(): Promise<string> {
 		const { headers, defaultValue = 'N/A', delimiter = ',', eol = '\n' } = this.options;
-		const rowsIndexedByHeader = this.indexRowsByHeader(this.getData());
+		const rowsIndexedByHeader = this.indexRowsByHeader(this.data);
 		const result: unknown[] = [];
 		for (let i = 0; i < headers.length; i++) {
 			const values = await this.executeTransforms(i, rowsIndexedByHeader, defaultValue);
@@ -50,7 +54,7 @@ export default class Parser<T extends Record<string, unknown>> {
 	private executeTransforms(index: number, map: Map<string, unknown[]>, defaultValue: string) {
 		const headerValues = map.get(this.options.headers[index]);
 		if (headerValues === undefined || headerValues.length === 0) {
-			return Promise.resolve(Array.from({ length: this.getData().length }, () => defaultValue));
+			return Promise.resolve(Array.from({ length: this.data.length }, () => defaultValue));
 		}
 		return Promise.all(
 			headerValues.map(async (value: any) => this.options.transforms?.[this.options.headers[index]]?.(value) ?? value),
@@ -65,7 +69,11 @@ export default class Parser<T extends Record<string, unknown>> {
 		return csv;
 	}
 
-	private getData() {
-		return Array.isArray(this.data) ? this.data : [this.data];
+	private get data(): T[] {
+		return Array.isArray(this._data) ? this._data : [this._data];
+	}
+
+	private set data(data: T | T[]) {
+		this._data = data;
 	}
 }
